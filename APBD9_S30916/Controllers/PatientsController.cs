@@ -14,7 +14,7 @@ public class PatientsController : ControllerBase
 
     public PatientsController(IPatientService pservice)
     {
-        pservice = _pservice;
+        _pservice = pservice;
     }
 
     [HttpGet("{id}")]
