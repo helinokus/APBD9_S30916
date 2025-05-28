@@ -5,10 +5,4 @@ namespace APBD9_S30916.Dtos.AddPrescriptionDtos;
 public class DoctorAddDto
 {
     public int IdDoctor { get; set; }
-    [MaxLength(100)]
-    public string FirstName { get; set; }
-    [MaxLength(100)]
-    public string LastName { get; set; }
-    [MaxLength(100)]
-    public string Email { get; set; }
 }
