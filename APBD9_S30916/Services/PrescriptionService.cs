@@ -20,18 +20,20 @@ public class PrescriptionService(IPrescriptionRepository _prescriptionRepository
 
         try
         {
-            Patient patient = await _patientRepository.GetPatientAsync(request.Patient.IdPatient);
+            Patient? patient = await _patientRepository.GetPatientAsync(request.Patient.IdPatient);
             if (patient == null)
             {
-                Patient newPatient = new Patient();
-                //Проверить на автоайди 
-                newPatient.FirstName = request.Patient.FirstName;
-                newPatient.LastName = request.Patient.LastName;
-                newPatient.BirthDate = request.Patient.BirthDate;
-                await _prescriptionRepository.AddPatientAsync(newPatient);
+                Patient newPatient = new Patient
+                {
+                    //Проверить на автоайди     
+                    FirstName = request.Patient.FirstName,
+                    LastName = request.Patient.LastName,
+                    BirthDate = request.Patient.BirthDate,
+                };
+                await _patientRepository.AddPatientAsync(newPatient);
             }
 
-            Doctor doctor = await _prescriptionRepository.DoctorExistsAsync(request.Doctor.IdDoctor);
+            Doctor? doctor = await _prescriptionRepository.GetDoctorAsync(request.Doctor.IdDoctor);
             if (doctor == null)
             {
                 throw new NotFoundException("Doctor not found");
@@ -40,14 +42,12 @@ public class PrescriptionService(IPrescriptionRepository _prescriptionRepository
             foreach (MedicamentsAddDto medicament in request.Medicaments)
             {
                 var medicamentExistsAsync =
-                    await _prescriptionRepository.MedicamentExistsAsync(medicament.IdMedicament);
+                    await _prescriptionRepository.GetMedicamentAsync(medicament.IdMedicament);
                 if (medicamentExistsAsync == null)
                 {
                     throw new NotFoundException($"Medicament {medicament.IdMedicament} not found");
                 }
             }
-
-            ;
 
             if (request.Medicaments.Count > 10)
             {
@@ -61,14 +61,15 @@ public class PrescriptionService(IPrescriptionRepository _prescriptionRepository
 
             Prescription prescription = new Prescription
             {
-                Patient = patient,
-                Doctor = doctor,
+                IdPatient = request.Patient.IdPatient,
+                IdDoctor = request.Doctor.IdDoctor,
                 Date = request.Date,
                 DueDate = request.DueDate,
                 Prescription_Medicaments = new List<Prescription_Medicament>()
             };
 
             await _prescriptionRepository.AddPrescriptionAsync(prescription);
+
 
             var prescriptionMedicaments = request.Medicaments.Select(medicamentDto => 
                 new Prescription_Medicament
@@ -78,8 +79,10 @@ public class PrescriptionService(IPrescriptionRepository _prescriptionRepository
                     Dose = medicamentDto.Dose,
                     Details = medicamentDto.Description
                 }).ToList();
-
             await _prescriptionRepository.AddPrescriptionMedicamentsAsync(prescriptionMedicaments);
+            await _prescriptionRepository.SaveChangesAsync(); 
+
+
 
             await transaction.CommitAsync();
         }
@@ -89,8 +92,9 @@ public class PrescriptionService(IPrescriptionRepository _prescriptionRepository
             throw;
         }
 
-        var responseEntityAddPrescription = new ResponseEntityAddPrescription();
-        responseEntityAddPrescription.Response = "Add prescriptions success";
-        return responseEntityAddPrescription;
+        return new ResponseEntityAddPrescription
+        {
+            Response = "Add prescriptions success"
+        };
     }
 }

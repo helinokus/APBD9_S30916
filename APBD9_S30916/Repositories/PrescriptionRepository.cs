@@ -9,13 +9,12 @@ namespace APBD9_S30916.Repositories;
 
 public interface IPrescriptionRepository
 {
-    Task<Patient?> PatientExistsAsync(int idPatient);
-    Task<Doctor?> DoctorExistsAsync(int idDoctor);
-    Task<Medicament?> MedicamentExistsAsync(int idMedicament);
-    Task AddPatientAsync(Patient patient);
+    Task<Doctor?> GetDoctorAsync(int idDoctor);
+    Task<Medicament?> GetMedicamentAsync(int idMedicament);
     Task AddPrescriptionAsync(Prescription prescription);
     Task AddPrescriptionMedicamentsAsync(IEnumerable<Prescription_Medicament> prescriptionMedicaments);
     Task<IDbContextTransaction> BeginTransactionAsync();
+    Task SaveChangesAsync();
 } 
 
 public class PrescriptionRepository : IPrescriptionRepository
@@ -26,32 +25,22 @@ public class PrescriptionRepository : IPrescriptionRepository
     {
         _context = context;
     }
-    
-    public async Task<Patient?> PatientExistsAsync(int idPatient)
-    {
-        return await _context.Patients.Where(p => p.Id == idPatient).FirstOrDefaultAsync();
-    }
 
-    public async Task<Doctor?> DoctorExistsAsync(int idDoctor)
+    public async Task<Doctor?> GetDoctorAsync(int idDoctor)
     {
         return await _context.Doctors.Where(d => d.Id == idDoctor).FirstOrDefaultAsync();
     }
 
 
-    public async Task<Medicament?> MedicamentExistsAsync(int idMedicament)
+    public async Task<Medicament?> GetMedicamentAsync(int idMedicament)
     {
         return await _context.Medicaments.Where(m => m.Id == idMedicament).FirstOrDefaultAsync();
     }
-
-    public async Task AddPatientAsync(Patient patient)
-    {
-        await _context.Patients.AddAsync(patient);
-    }
+    
 
     public async Task AddPrescriptionAsync(Prescription prescription)
     {
         await _context.Prescriptions.AddAsync(prescription);
-        await _context.SaveChangesAsync();
     }
 
     public async Task AddPrescriptionMedicamentsAsync(IEnumerable<Prescription_Medicament> prescriptionMedicaments)
@@ -63,6 +52,9 @@ public class PrescriptionRepository : IPrescriptionRepository
     {
         return await _context.Database.BeginTransactionAsync();
     }
-    
-    
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 }

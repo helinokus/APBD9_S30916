@@ -9,6 +9,7 @@ public interface IPatientRepository
 {
     Task<GetPatientDto?> GetPatientWithDetailsAsync(int id);
     Task<Patient?> GetPatientAsync(int id);
+    Task AddPatientAsync(Patient patient);
 }
 
 public class PatientRepository : IPatientRepository
@@ -60,4 +61,10 @@ public class PatientRepository : IPatientRepository
     {
         return await _context.Patients.Where(p => p.Id == id).FirstOrDefaultAsync();
     }
+    
+    public async Task AddPatientAsync(Patient patient)
+    {
+        await _context.Patients.AddAsync(patient);
+    }
+
 }
