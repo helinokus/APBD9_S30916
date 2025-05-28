@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace APBD9_S30916.Controllers;
 
 [ApiController]
-[Route("api/patients")]
+[Route("[controller]")]
 public class PatientsController : ControllerBase
 {
     private readonly IPatientService _pservice;

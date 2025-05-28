@@ -25,32 +25,7 @@ public class PatientService : IPatientService
         var patient = await _repo.GetPatientWithDetailsAsync(id);
         if (patient == null) return null;
 
-        return new GetPatientDto
-        {
-            IdPatient = patient.Id,
-            FirstName = patient.FirstName,
-            LastName = patient.LastName,
-            BirthDate = patient.BirthDate,
-            Prescriptions = patient.Prescriptions
-                .OrderBy(p => p.DueDate)
-                .Select(p => new PrescriptionDto
-                {
-                    IdPrescription = p.IdPrescription,
-                    Date = p.Date,
-                    DueDate = p.DueDate,
-                    Doctor = new DoctorDto
-                    {
-                        IdDoctor = p.Doctor.Id,
-                        FirstName = p.Doctor.FirstName
-                    },
-                    Medicaments = p.Prescription_Medicaments.Select(pm => new MedicamentsDto
-                    {
-                        IdMedicament = pm.Medicament.Id,
-                        Name = pm.Medicament.Name,
-                        Description = pm.Medicament.Description,
-                        Dose = pm.Dose
-                    }).ToList()
-                }).ToList()
-        };
+        return patient;
+
     }
 }

@@ -7,7 +7,8 @@ namespace APBD9_S30916.Repositories;
 
 public interface IPatientRepository
 {
-    Task<Patient?> GetPatientWithDetailsAsync(int id);
+    Task<GetPatientDto?> GetPatientWithDetailsAsync(int id);
+    Task<Patient?> GetPatientAsync(int id);
 }
 
 public class PatientRepository : IPatientRepository
@@ -18,14 +19,45 @@ public class PatientRepository : IPatientRepository
     {
         _context = context;
     }
-    public async Task<Patient?> GetPatientWithDetailsAsync(int id)
+
+    public async Task<GetPatientDto?> GetPatientWithDetailsAsync(int id)
     {
         return await _context.Patients
-            .Include(p => p.Prescriptions)
-            .ThenInclude(pres => pres.Doctor)
-            .Include(p => p.Prescriptions)
-            .ThenInclude(pres => pres.Prescription_Medicaments)
-            .ThenInclude(pm => pm.Medicament)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .Where(p => p.Id == id)
+            .Select(p => new GetPatientDto
+            {
+                IdPatient = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                BirthDate = p.BirthDate,
+                Prescriptions = p.Prescriptions
+                    .OrderBy(pr => pr.DueDate)
+                    .Select(pr => new PrescriptionDto
+                    {
+                        IdPrescription = pr.IdPrescription,
+                        Date = pr.Date,
+                        DueDate = pr.DueDate,
+                        Doctor = new DoctorDto
+                        {
+                            IdDoctor = pr.Doctor.Id,
+                            FirstName = pr.Doctor.FirstName,
+                        },
+                        Medicaments = pr.Prescription_Medicaments
+                            .Select(pm => new MedicamentsDto
+                                {
+                                    IdMedicament = pm.IdMedicament,
+                                    Name = pm.Medicament.Name,
+                                    Dose = pm.Dose,
+                                    Description = pm.Details
+                                })
+                            .ToList()
+                        
+                    }).ToList()
+            }).FirstOrDefaultAsync();
+    }
+
+    public async Task<Patient?> GetPatientAsync(int id)
+    {
+        return await _context.Patients.Where(p => p.Id == id).FirstOrDefaultAsync();
     }
 }
